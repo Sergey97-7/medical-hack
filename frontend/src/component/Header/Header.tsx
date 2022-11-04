@@ -66,7 +66,7 @@ export function Header({
           <Button sx={buttonStyle} onClick={getInterceptions}>
             Получить разметку
           </Button>  */}
-        {/* <Button onClick={clearImgFilters}>Сбросить яркость и контраст</Button> */}
+        <Button onClick={clearImgFilters}>Сбросить фильтры</Button>
         <div className={styles.sliderContainer}>
           <Typography
             sx={{ ...buttonStyle, marginRight: 2 }}

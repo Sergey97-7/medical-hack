@@ -50,8 +50,8 @@ const Editor = () => {
       return {
         type: item.type,
         geometry: [
-          [selectorXLeftTop, selectorYLeftTop],
-          [selectorXRightBottom, selectorYRightBottom],
+          { x: selectorXLeftTop, y: selectorYLeftTop },
+          { x: selectorXRightBottom, y: selectorYRightBottom },
         ],
       };
     });
@@ -68,12 +68,43 @@ const Editor = () => {
       //don't work ???
       // elem.lockMovementX = true;
       // elem.lockMovementY = true;
-      if (img.top !== elem.target.top) {
-        elem.target.top = img.top;
+      // if (img.top !== elem.target.top) {
+      //   elem.target.top = img.top;
+      // }
+      // if (img.left !== elem.target.left) {
+      //   elem.target.left = img.left;
+      // }
+      const CANVAS_IMG_BORDER = 20;
+      if (img.top < CANVAS_IMG_BORDER) {
+        elem.target.top = CANVAS_IMG_BORDER
       }
-      if (img.left !== elem.target.left) {
-        elem.target.left = img.left;
+      if (img.left < CANVAS_IMG_BORDER) {
+        elem.target.left = CANVAS_IMG_BORDER;
       }
+      if (img.left + img.width - CANVAS_IMG_BORDER > canvas.width) {
+        img.left = canvas.width - img.width - CANVAS_IMG_BORDER
+      }
+      if (img.top + img.height - CANVAS_IMG_BORDER > canvas.height) {
+        img.top = canvas.height - img.height - CANVAS_IMG_BORDER
+      }
+
+      // const a = {scaleX: img.getScaledWidth(), scaleY: img.getScaledHeight(), skewX: img.getSkewX(), skewY: img.getSkewY(), flipX: img.getFlipX(), flipY:img.getFlipX(), angle: img.getAngle()};
+      // selectors.forEach((item)=> {
+      //   console.log('item', item)
+      //   fabric.util.resetObjectTransform(item);      
+      //   item.addWithUpdate();
+      //   item.setSkewX(a.skewX);
+      //   item.setSkewY(a.skewY);
+      //   item.setFlipX(a.flipX);
+      //   item.setFlipY(a.flipY);
+      //   item.setAngle(a.angle);
+      //   item.setScaleX(a.scaleX);
+      //   item.setScaleY(a.scaleY);
+      // })
+
+
+
+
     } else {
       if (elem.target.top < img.top) {
         elem.target.top = img.top;
@@ -91,10 +122,24 @@ const Editor = () => {
   };
   const onImgChange = (e) => {
     if (e.target.myId === "myimg") {
-      console.log("yep");
+      console.log("yep", e);
+      const selectors = canvas.getObjects().filter(function (o) {
+        return o.intersectsWithObject(e.target) && o.myId !== "myimg";
+      });
+      let scaleY = e.transform.scaleY !== 1 ? e.transform.scaleY : null
+      let scaleX = e.transform.scaleX !== 1 ? e.transform.scaleX : null
+      selectors.forEach((item) => {
+        if (scaleY) {
+          item.scaleY = scaleY
+          item.width = item.width*scaleY
+        }
+        if (scaleX) item.scaleX = scaleX
+      })
+      console.log('scaleY', scaleY)
+      // canvas.requestRenderAll();
     }
   };
-  const changeInterceptionCoordinates = () => {};
+  const changeInterceptionCoordinates = () => { };
 
   function zoom(opt) {
     var delta = opt.e.deltaY;
@@ -139,7 +184,12 @@ const Editor = () => {
       //todo debounce
       canvas.on({
         "object:moving": onCanvasChange,
+
         "object:rotating": onImgChange,
+        "object:scale": onImgChange,
+        'object:scaling': onImgChange,
+        'object:skewing': onImgChange,
+        'object:resizing': onImgChange,
         // 'object:rotate': onImgChange,
       });
       // canvas.on('mouse:wheel', function(opt) {
@@ -172,7 +222,8 @@ const Editor = () => {
     const img = getImage();
     if (img) return;
     fabric.Image.fromURL("../img/mrt.jpeg", function (img) {
-      img.set({ myId: "myimg", lockMovementY: true, lockMovementX: true });
+      // img.set({ myId: "myimg", lockMovementY: true, lockMovementX: true });
+      img.set({ myId: "myimg", });
       canvas.centerObject(img);
       canvas.add(img);
 
@@ -277,7 +328,7 @@ const Editor = () => {
     setImgBrightnessValue(0);
   };
 
-  const handleRange = (name) => (e) => {    
+  const handleRange = (name) => (e) => {
     if (name === "contrast") setImgContrastValue(+e.target.value);
     else if (name === "brightness") setImgBrightnessValue(+e.target.value);
   };
@@ -302,7 +353,7 @@ const Editor = () => {
         contrastValue={contrastValue}
         brightnessValue={brightnessValue}
       />
-      <canvas id="my-fabric-canvas" width={window.innerWidth - 250} height={window.innerHeight}/>
+      <canvas id="my-fabric-canvas" width={window.innerWidth - 250} height={window.innerHeight - 64} />
     </div>
   );
 };
@@ -353,4 +404,9 @@ export default Editor;
  */
 /**
  * наверно надо хранить ссылки на элементы, а не каждый раз за ними ходить в canvas
+ */
+
+/**
+ * TODO
+ * max img width and height
  */
