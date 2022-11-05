@@ -131,7 +131,7 @@ const Editor = () => {
       selectors.forEach((item) => {
         if (scaleY) {
           item.scaleY = scaleY
-          item.width = item.width*scaleY
+          item.width = item.width * scaleY
         }
         if (scaleX) item.scaleX = scaleX
       })
@@ -178,18 +178,104 @@ const Editor = () => {
       }, timeout);
     };
   }
+  const onClick = (e) => {
+    console.log('DAAAA', e)
+    canvas.discardActiveObject();
+    console.log('DAAAA', e)
+    // console.log('DAAAA', && !canvas.getActiveObject().find(item => item.myId === 'myimg'))
+    // console.log('DAAAA', canvas.getActiveObject().myId === 'myimg')
+    console.log('canvas.getActiveObject()', canvas.getActiveObjects())
+    // console.log('!canvas.getActiveObject().myId === "myimg"', canvas.getActiveObject().myId === 'myimg')
+    // console.log('!canvas.getActiveObject().myId === "myimg"', canvas.getActiveObject().get('type') === 'group')
+    // console.log('!canvas.getActiveObject().myId === "myimg"', canvas.getActiveObject().canvas.find(item=>item.myId==='myimg'))
+    if (e.target && e.target.myId === 'myimg') {
+      // if (e.selected && e.selected[0].myId === 'myimg') {
+
+      // canvas.discardActiveObject();
+
+
+
+console.log('YEEEP')
+      //canvas.getObjects()
+      // const selectors = canvas.getObjects().filter(function (o) {
+      //   return o.intersectsWithObject(e.target) && o.myId !== "myimg";
+      // });
+      // const sel = new fabric.ActiveSelection([getImage(), ...selectors], {
+      const sel = new fabric.ActiveSelection(canvas.getObjects(), {
+        canvas: canvas,
+
+      });
+
+
+      canvas.setActiveObject(sel);
+      canvas.requestRenderAll();
+      throw new Error()
+      // canvas.centerObject(sel);
+      // canvas.setActiveObject(sel);
+      // e.e.preventDefault();
+      // e.e.stopPropagation();
+      // return
+      // canvas.requestRenderAll();
+    }
+    // else return
+    // else if (e.target && e.target.myId !== 'myimg') {
+    // canvas.discardActiveObject();
+    // canvas.requestRenderAll();
+    // if (!canvas.getActiveObject()) {
+    // return;
+    // }
+    // if (canvas.getActiveObject().type !== 'group') {
+    // return;
+    // }
+    // canvas.getActiveObject().toActiveSelection();
+    // canvas.requestRenderAll();
+    // }
+  }
+  const onClick2 = (e) => {
+    console.log('e', e)
+    ungroup();
+    canvas.remove(rect);
+    group.addWithUpdate(rect);
+    rect.sendToBack();
+    group.set("dirty", true);
+    canvas.renderAll();
+  }
+  function ungroup() {
+    group.forEachObject((i) => {
+      if (i.type == "rect") {
+        group.removeWithUpdate(i);
+        canvas.add(i);
+      }
+    });
+  }
+  function group() {
+    ungroup();
+    canvas.remove(rect);
+    group.addWithUpdate(rect);
+  }
   const dZoom = debounce(zoom);
+  const test = (e) => {
+    console.log('selected', e)
+  }
   useEffect(() => {
     if (canvas) {
       //todo debounce
       canvas.on({
-        "object:moving": onCanvasChange,
-
-        "object:rotating": onImgChange,
-        "object:scale": onImgChange,
-        'object:scaling': onImgChange,
-        'object:skewing': onImgChange,
-        'object:resizing': onImgChange,
+        // "object:moving": onCanvasChange, //TODO FIXXXX
+        // 'mouse:down': onClick,
+        // 'mousedown': onClick,
+        // 'mouse:down': onClick2,
+        // 'mouse:dblclick': ()=>{},
+        // 'selection:created': onClick,
+        // 'mouse:dblclick': ()=>{},
+        // 'selection:updated': onClick,
+        // 'selection:created': onClick,
+        "mouse:wheel": dZoom,
+        // "object:rotating": onImgChange,
+        // "object:scale": onImgChange,
+        // 'object:scaling': onImgChange,
+        // 'object:skewing': onImgChange,
+        // 'object:resizing': onImgChange,
         // 'object:rotate': onImgChange,
       });
       // canvas.on('mouse:wheel', function(opt) {
@@ -203,12 +289,28 @@ const Editor = () => {
       //   opt.e.stopPropagation();
       // })
       //TODO fix
-      canvas.on("mouse:wheel", dZoom);
+      // canvas.on("mouse:wheel", dZoom);
+
+    }
+    return () => {
+      if (canvas) {
+        canvas.off('mouse:down');
+        canvas.off("mouse:wheel");
+        canvas.off("object:moving")
+        canvas.off("selection:created")
+        canvas.off("mousedown")
+        canvas.off("selection:updated")
+        canvas.off("selection:created")
+        // canvas.off({
+        //   'mouse:down': onClick
+        // })
+      }
     }
   }, [canvas]);
   useEffect(() => {
     const canvas = new fabric.Canvas("my-fabric-canvas", {
-      preserveObjectStacking: true,
+      //TODO ???
+      // preserveObjectStacking: true,
     });
 
     setCanvas(canvas);
@@ -223,9 +325,13 @@ const Editor = () => {
     if (img) return;
     fabric.Image.fromURL("../img/mrt.jpeg", function (img) {
       // img.set({ myId: "myimg", lockMovementY: true, lockMovementX: true });
-      img.set({ myId: "myimg", });
+      img.set({ myId: "myimg", selection: false, selectable: false });
       canvas.centerObject(img);
       canvas.add(img);
+      // img.on('mousedown', onClick)
+      img.on('mousedown:before', onClick)
+      // img.on('mousedown:before', onClick)
+
 
       // todo add background image ?
       // canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
